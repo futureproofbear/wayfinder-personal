@@ -2,15 +2,17 @@ import type { MetadataRoute } from "next";
 
 export const dynamic = "force-static";
 
+const base = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Wayfinder",
     short_name: "Wayfinder",
     description: "Map-first Asia trip planner",
-    start_url: "/",
+    start_url: `${base}/`,
     display: "standalone",
     background_color: "#ffffff",
     theme_color: "#0f766e",
-    icons: [{ src: "/icon.svg", sizes: "any", type: "image/svg+xml" }],
+    icons: [{ src: `${base}/icon.svg`, sizes: "any", type: "image/svg+xml" }],
   };
 }

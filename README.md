@@ -27,6 +27,12 @@ The build is a static site in `frontend/out/`, so any static host works.
 - **Netlify Drop (no git, about 1 minute):** run `npm run build` in `frontend`,
   then drag the `out` folder onto https://app.netlify.com/drop. Sign in
   (free) so the site doesn't expire.
+- **GitHub Pages:** the `Publish web app` workflow builds the site into the
+  `gh-pages` branch on every push. Turn it on once under **Settings → Pages →
+  Deploy from a branch → `gh-pages` / root**. The site is then at
+  https://futureproofbear.github.io/wayfinder-personal/. Pages on a private
+  repo needs a paid GitHub plan, and the published site is public either way.
+  An optional `GOOGLE_MAPS_API_KEY` repository secret switches it to Google.
 - **Vercel:** import this repo at https://vercel.com/new with
   **Root Directory** set to `frontend`. Add the Google key as an environment
   variable if you have one.
