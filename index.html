@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Wayfinder</title>
+  <meta name="description" content="Map-first trip planner for Asia">
+  <meta name="theme-color" content="#0d9488">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Wayfinder">
+  <meta name="format-detection" content="telephone=no">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="icon" href="icons/icon-180.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css">
+  <script src="config.js"></script>
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+  <div class="mapwrap"><div id="map" aria-label="Map"></div></div>
+
+  <header class="topbar">
+    <div class="searchrow">
+      <button id="tripBtn" class="chip trip" type="button">Trips</button>
+      <form id="searchForm" role="search">
+        <input id="q" type="search" placeholder="Search places" enterkeyhint="search" autocomplete="off" autocorrect="off">
+      </form>
+    </div>
+    <nav class="cats" aria-label="Categories">
+      <button class="chip" data-action="cat" data-q="top tourist attractions">📍 Sights</button>
+      <button class="chip" data-action="cat" data-q="restaurants">🍜 Food</button>
+      <button class="chip" data-action="cat" data-q="cafes">☕ Cafés</button>
+      <button class="chip" data-action="cat" data-q="museums">🏛 Museums</button>
+      <button class="chip" data-action="cat" data-q="shopping">🛍 Shopping</button>
+      <button class="chip" data-action="cat" data-q="bars">🍸 Nightlife</button>
+      <button class="chip" data-action="cat" data-q="parks">🌳 Parks</button>
+    </nav>
+  </header>
+
+  <button id="locateBtn" class="fab" type="button" aria-label="Show my location">➤</button>
+
+  <section id="sheet" class="sheet" aria-label="Trip planner">
+    <div id="sheetHandle" role="button" aria-label="Resize panel"></div>
+    <div id="sheetBody"></div>
+  </section>
+
+  <dialog id="tripDialog">
+    <form id="tripForm" method="dialog">
+      <h2>Your trips</h2>
+      <ul id="tripList" class="trip-list"></ul>
+      <h3>New trip</h3>
+      <label>Destination
+        <input name="dest" required placeholder="e.g. Tokyo, Japan" autocomplete="off">
+      </label>
+      <div class="quick">
+        <button type="button" class="chip" data-dest="Tokyo, Japan">Tokyo</button>
+        <button type="button" class="chip" data-dest="Seoul, South Korea">Seoul</button>
+        <button type="button" class="chip" data-dest="Bangkok, Thailand">Bangkok</button>
+        <button type="button" class="chip" data-dest="Singapore">Singapore</button>
+        <button type="button" class="chip" data-dest="Taipei, Taiwan">Taipei</button>
+        <button type="button" class="chip" data-dest="Kyoto, Japan">Kyoto</button>
+      </div>
+      <div class="two">
+        <label>Start date <input name="start" type="date"></label>
+        <label>Days <input name="days" type="number" min="1" max="30" value="3" inputmode="numeric"></label>
+      </div>
+      <p id="tripErr" class="err" role="alert"></p>
+      <menu>
+        <button value="cancel" formnovalidate class="btn">Close</button>
+        <button value="create" class="btn primary">Create trip</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
