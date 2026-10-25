@@ -1,9 +1,9 @@
 // App-shell cache: network-first so updates show immediately, cache when offline.
 // Google map tiles/APIs are never cached (licensing + freshness).
-const CACHE = 'wayfinder-v1';
+const CACHE = 'wayfinder-v2';
 const SHELL = [
   './', 'index.html', 'styles.css', 'config.js', 'manifest.webmanifest',
-  'js/app.js', 'js/store.js', 'js/providers/mapProvider.js', 'js/providers/google.js',
+  'js/app.js', 'js/store.js', 'js/providers/mapProvider.js', 'js/providers/google.js', 'js/ai/agent.js', 'js/ai/tools.js',
   'icons/icon-180.png', 'icons/icon-512.png',
 ];
 

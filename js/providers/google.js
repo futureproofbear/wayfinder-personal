@@ -2,12 +2,22 @@
 // Map rendering: Maps JavaScript API. Search: Places API (New). Routing: Routes API.
 
 const PLACES_URL = 'https://places.googleapis.com/v1/places:searchText';
+const NEARBY_URL = 'https://places.googleapis.com/v1/places:searchNearby';
 const ROUTES_URL = 'https://routes.googleapis.com/directions/v2:computeRoutes';
 
 const PLACE_FIELDS = [
   'id', 'displayName', 'formattedAddress', 'location', 'rating', 'userRatingCount',
   'primaryType', 'primaryTypeDisplayName', 'currentOpeningHours.openNow', 'googleMapsUri',
+  'priceLevel', 'parkingOptions',
 ].map((f) => `places.${f}`).join(',');
+
+const PRICE_LEVELS = {
+  PRICE_LEVEL_FREE: 'free',
+  PRICE_LEVEL_INEXPENSIVE: '$',
+  PRICE_LEVEL_MODERATE: '$$',
+  PRICE_LEVEL_EXPENSIVE: '$$$',
+  PRICE_LEVEL_VERY_EXPENSIVE: '$$$$',
+};
 
 const ROUTE_FIELDS = [
   'routes.optimizedIntermediateWaypointIndex',
@@ -49,6 +59,11 @@ function normPlace(p) {
     ratings: p.userRatingCount,
     openNow: p.currentOpeningHours?.openNow,
     mapsUri: p.googleMapsUri,
+    priceLevel: PRICE_LEVELS[p.priceLevel],
+    // e.g. ['paidParkingLot', 'freeStreetParking'] — whatever the venue reports as true
+    parking: p.parkingOptions
+      ? Object.keys(p.parkingOptions).filter((k) => p.parkingOptions[k] === true)
+      : undefined,
   };
 }
 
@@ -157,8 +172,22 @@ export class GoogleProvider {
     };
   }
 
-  async searchPlaces(query, { near, radiusM = 10000 } = {}) {
-    const body = { textQuery: query, maxResultCount: 15, languageCode: 'en' };
+  // Nearest places of the given Google place types, e.g. ['parking_lot', 'parking_garage'].
+  async searchNearby(types, near, { radiusM = 800, max = 10 } = {}) {
+    const json = await this.#post(NEARBY_URL, {
+      includedTypes: types,
+      maxResultCount: max,
+      rankPreference: 'DISTANCE',
+      languageCode: 'en',
+      locationRestriction: {
+        circle: { center: { latitude: near.lat, longitude: near.lng }, radius: radiusM },
+      },
+    }, PLACE_FIELDS);
+    return (json.places || []).map(normPlace).filter((p) => p.lat != null);
+  }
+
+  async searchPlaces(query, { near, radiusM = 10000, max = 15 } = {}) {
+    const body = { textQuery: query, maxResultCount: max, languageCode: 'en' };
     if (near) {
       body.locationBias = {
         circle: { center: { latitude: near.lat, longitude: near.lng }, radius: radiusM },

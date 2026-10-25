@@ -24,6 +24,7 @@
   <header class="topbar">
     <div class="searchrow">
       <button id="tripBtn" class="chip trip" type="button">Trips</button>
+      <button id="aiBtn" class="chip ai" type="button" data-action="ai" aria-label="Travel assistant">✨</button>
       <form id="searchForm" role="search">
         <input id="q" type="search" placeholder="Search places" enterkeyhint="search" autocomplete="off" autocorrect="off">
       </form>
@@ -44,7 +45,41 @@
   <section id="sheet" class="sheet" aria-label="Trip planner">
     <div id="sheetHandle" role="button" aria-label="Resize panel"></div>
     <div id="sheetBody"></div>
+    <div id="chat" hidden>
+      <div class="chat-hd">
+        <button class="link" data-action="back">‹ Itinerary</button>
+        <button class="link" data-action="settings" aria-label="Assistant settings">⚙︎ Settings</button>
+      </div>
+      <div id="chatLog" aria-live="polite"></div>
+      <form id="composer">
+        <div id="attachments"></div>
+        <div class="composer-row">
+          <button id="attachBtn" type="button" aria-label="Attach photos">📎</button>
+          <textarea id="chatInput" rows="1" placeholder="Ask, or paste a booking…" enterkeyhint="send"></textarea>
+          <button id="sendBtn" type="submit" aria-label="Send">↑</button>
+        </div>
+        <input id="fileInput" type="file" accept="image/*" multiple hidden>
+      </form>
+    </div>
   </section>
+
+  <dialog id="settingsDialog">
+    <form id="settingsForm" method="dialog">
+      <h2>Assistant settings</h2>
+      <p id="settingsMsg" class="err"></p>
+      <label>Claude API key
+        <input name="apiKey" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="sk-ant-…">
+      </label>
+      <p class="hint">Stored only on this device. Requests go straight from your phone to Anthropic.
+        Create a key at <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>, and set a monthly spend limit there.</p>
+      <label>Model <select name="model"></select></label>
+      <menu>
+        <button value="clear" class="btn" formnovalidate>Clear chat</button>
+        <button value="cancel" class="btn" formnovalidate>Close</button>
+        <button value="save" class="btn primary">Save</button>
+      </menu>
+    </form>
+  </dialog>
 
   <dialog id="tripDialog">
     <form id="tripForm" method="dialog">
