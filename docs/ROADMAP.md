@@ -18,6 +18,8 @@ Goal: prove the hard parts work end to end.
 - [x] `POST /itinerary/optimise-day` returning schedule + leg geometry
 - [x] Map-first UI with MapLibre, sample Singapore and Shanghai days
 - [x] Offline: last plan cached in the browser; markers render without tiles
+- [x] Tonight mode: browser-only planner with embedded Google Maps, Places
+      search, Route Matrix ordering, evening-order preference, Google Maps hand-off
 - [ ] Verify Google, AMap and Baidu adapters against live keys
 - [ ] AMap JS renderer (overseas endpoint) for CN, Baidu JS renderer as fallback
 - [ ] AMap transit routing (needs city codes)
