@@ -1,23 +1,10 @@
 /// <reference types="google.maps" />
 import type { LatLng, TravelMode } from "@/lib/api";
 import { loadGoogleMaps } from "@/lib/maps/googleLoader";
+import type { FoundPlace, Leg, PlacesProvider } from "./types";
 
-// Browser-side Google Places (New) and Routes calls via the Maps JS API, so the
-// planner can run as a static site with no backend.
-
-export interface FoundPlace {
-  id: string;
-  name: string;
-  address: string;
-  location: LatLng;
-  rating?: number;
-  ratingCount?: number;
-  priceLevel?: string;
-  type?: string;
-  mapsUrl?: string;
-  /** Today's hours as minutes since midnight; close may exceed 1440. */
-  todayHours?: { open: number; close: number };
-}
+// Google Places (New) and Routes via the Maps JavaScript API. Used when a
+// browser key is configured; otherwise the keyless OSM provider is used.
 
 const MODES: Record<TravelMode, google.maps.TravelModeString> = {
   walking: "WALKING",
@@ -48,7 +35,7 @@ function todayHours(
   return todays.find((t) => t.close > nowMin) ?? todays[todays.length - 1];
 }
 
-export async function searchPlaces(query: string, near: LatLng): Promise<FoundPlace[]> {
+async function searchPlaces(query: string, near: LatLng): Promise<FoundPlace[]> {
   await loadGoogleMaps();
   const { Place } = (await google.maps.importLibrary("places")) as google.maps.PlacesLibrary;
   const { places } = await Place.searchByText({
@@ -60,8 +47,7 @@ export async function searchPlaces(query: string, near: LatLng): Promise<FoundPl
       "location",
       "rating",
       "userRatingCount",
-      "priceLevel",
-      "primaryTypeDisplayName",
+            "primaryTypeDisplayName",
       "googleMapsURI",
       "regularOpeningHours",
     ],
@@ -78,15 +64,13 @@ export async function searchPlaces(query: string, near: LatLng): Promise<FoundPl
       location: { lat: p.location!.lat(), lng: p.location!.lng() },
       rating: p.rating ?? undefined,
       ratingCount: p.userRatingCount ?? undefined,
-      priceLevel: p.priceLevel ?? undefined,
       type: p.primaryTypeDisplayName ?? undefined,
       mapsUrl: p.googleMapsURI ?? undefined,
       todayHours: todayHours(p.regularOpeningHours, now),
     }));
 }
 
-/** durations[i][j] in seconds; null where Google found no route. */
-export async function travelMatrix(
+async function travelMatrix(
   points: LatLng[],
   mode: TravelMode,
 ): Promise<(number | null)[][]> {
@@ -107,13 +91,7 @@ export async function travelMatrix(
   );
 }
 
-export interface Leg {
-  path: LatLng[];
-  durationS: number;
-  distanceM: number;
-}
-
-export async function routeLeg(from: LatLng, to: LatLng, mode: TravelMode): Promise<Leg> {
+async function routeLeg(from: LatLng, to: LatLng, mode: TravelMode): Promise<Leg> {
   await loadGoogleMaps();
   const { Route } = (await google.maps.importLibrary("routes")) as google.maps.RoutesLibrary;
   const { routes } = await Route.computeRoutes({
@@ -131,19 +109,10 @@ export async function routeLeg(from: LatLng, to: LatLng, mode: TravelMode): Prom
   };
 }
 
-/** Deep link that opens turn-by-turn navigation in the Google Maps app. */
-export function googleMapsDirectionsUrl(
-  origin: LatLng,
-  stops: LatLng[],
-  mode: TravelMode,
-): string {
-  const fmt = (p: LatLng) => `${p.lat},${p.lng}`;
-  const params = new URLSearchParams({
-    api: "1",
-    origin: fmt(origin),
-    destination: fmt(stops[stops.length - 1]),
-    travelmode: mode === "transit" ? "transit" : mode,
-  });
-  if (stops.length > 1) params.set("waypoints", stops.slice(0, -1).map(fmt).join("|"));
-  return `https://www.google.com/maps/dir/?${params}`;
-}
+export const googleProvider: PlacesProvider = {
+  name: "google",
+  attribution: "Places and routes from Google Maps",
+  search: searchPlaces,
+  matrix: travelMatrix,
+  leg: routeLeg,
+};

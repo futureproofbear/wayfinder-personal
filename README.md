@@ -9,23 +9,35 @@ supported through AMap and Baidu.
 
 ## Tonight mode (`/`)
 
-The home page plans an evening out, entirely in the browser with Google Maps:
-search places near you, add up to 7 stops, and it orders them around today's
-opening hours and travel time, preferring meal → dessert/coffee → drinks.
-The route is drawn on an embedded Google map, and **Navigate in Google Maps**
-hands off turn-by-turn. No backend is needed, so it deploys as a static site.
+The home page plans an evening out, entirely in the browser: search places
+near you, add up to 7 stops, and it orders them around today's opening hours
+and travel time, preferring meal → dessert/coffee → drinks. The route is drawn
+on the embedded map, and **Navigate in Google Maps** hands off turn-by-turn.
 
-### Deploy it to your phone (about 10 minutes)
+It works with **no API keys**: places come from OpenStreetMap (Overpass),
+walking and driving times from the FOSSGIS OSRM servers, and map tiles from
+OpenFreeMap. Public transport times are estimates. Set
+`NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` at build time to switch to Google Maps,
+Google Places (ratings, better coverage) and Google routing, including transit.
 
-1. **Google key.** In [Google Cloud Console](https://console.cloud.google.com/),
-   create a project with billing, enable **Maps JavaScript API**,
-   **Places API (New)** and **Routes API**, then create an API key. Restrict it
-   to *HTTP referrers* (`https://*.vercel.app/*`, or your own domain) and to
-   those three APIs.
-2. **Host.** On [Vercel](https://vercel.com/new), import this repo, set
-   **Root Directory** to `frontend`, add the environment variable
-   `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`, and deploy.
-3. Open the URL on your phone and choose *Add to Home Screen*.
+### Put it online
+
+The build is a static site in `frontend/out/`, so any static host works.
+
+- **Netlify Drop (no git, about 1 minute):** run `npm run build` in `frontend`,
+  then drag the `out` folder onto https://app.netlify.com/drop. Sign in
+  (free) so the site doesn't expire.
+- **Vercel:** import this repo at https://vercel.com/new with
+  **Root Directory** set to `frontend`. Add the Google key as an environment
+  variable if you have one.
+
+On your phone, open the URL and choose *Add to Home Screen*.
+
+### Google key (optional)
+
+In Google Cloud Console, enable **Maps JavaScript API**, **Places API (New)**
+and **Routes API**, create an API key restricted to your site's domain
+(HTTP referrers) and those APIs, and set it as `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`.
 
 The sample-days page that uses the Python backend is at `/demo`.
 

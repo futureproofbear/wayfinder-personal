@@ -109,24 +109,6 @@ export function planOuting(
   return best ?? { order: [], totalTravelMin: 0, lateCount: 0 };
 }
 
-/** Straight-line fallback estimate in minutes when routing is unavailable. */
-export function estimateMin(
-  a: { lat: number; lng: number },
-  b: { lat: number; lng: number },
-  mode: "walking" | "driving" | "transit",
-): number {
-  const R = 6371008.8;
-  const toRad = (d: number) => (d * Math.PI) / 180;
-  const dLat = toRad(b.lat - a.lat);
-  const dLng = toRad(b.lng - a.lng);
-  const h =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2;
-  const metres = 2 * R * Math.asin(Math.sqrt(h)) * 1.3;
-  const speed = { walking: 1.3, driving: 8, transit: 6 }[mode];
-  return metres / speed / 60 + (mode === "transit" && metres > 0 ? 5 : 0);
-}
-
 export function fmtTime(min: number): string {
   const m = Math.round(min) % (24 * 60);
   return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;

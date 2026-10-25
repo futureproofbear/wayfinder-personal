@@ -4,18 +4,17 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { LatLng, TravelMode } from "@/lib/api";
-import {
-  googleMapsDirectionsUrl,
-  routeLeg,
-  searchPlaces,
-  travelMatrix,
-  type FoundPlace,
-} from "@/lib/google/services";
 import type { MapMarker } from "@/lib/maps";
 import { GOOGLE_MAPS_KEY } from "@/lib/maps/googleLoader";
-import { estimateMin, fmtTime, MAX_STOPS, phaseOf, planOuting, type Plan } from "@/lib/planner";
+import { googleProvider } from "@/lib/places/google";
+import { osmProvider } from "@/lib/places/osm";
+import { estimateS, googleMapsDirectionsUrl, type FoundPlace } from "@/lib/places/types";
+import { fmtTime, MAX_STOPS, phaseOf, planOuting, type Plan } from "@/lib/planner";
 
 const TripMap = dynamic(() => import("@/components/TripMap"), { ssr: false });
+
+// Google Maps when a browser key is configured, otherwise keyless OpenStreetMap.
+const provider = GOOGLE_MAPS_KEY ? googleProvider : osmProvider;
 
 const STORE_KEY = "wayfinder:tonight";
 const DEFAULT_START: LatLng = { lat: 1.2834, lng: 103.8607 }; // Marina Bay, Singapore
@@ -126,7 +125,9 @@ export default function Tonight() {
     setBusy("Searching…");
     setNote(null);
     try {
-      setResults(await searchPlaces(q, start));
+      const found = await provider.search(q, start);
+      setResults(found);
+      if (!found.length) setNote(`Nothing found for "${q}" nearby. Try another search.`);
     } catch (err) {
       setNote(err instanceof Error ? err.message : "Search failed");
     } finally {
@@ -171,11 +172,11 @@ export default function Tonight() {
     const points = [start, ...stops.map((s) => s.location)];
     let matrix: (number | null)[][];
     try {
-      matrix = (await travelMatrix(points, mode)).map((row) =>
+      matrix = (await provider.matrix(points, mode)).map((row) =>
         row.map((s) => (s == null ? null : s / 60)),
       );
     } catch {
-      matrix = points.map((a) => points.map((b) => estimateMin(a, b, mode)));
+      matrix = points.map((a) => points.map((b) => estimateS(a, b, mode) / 60));
       setNote("Live travel times unavailable; using distance estimates.");
     }
     const [h, m] = startTime.split(":").map(Number);
@@ -197,7 +198,8 @@ export default function Tonight() {
     const ordered = [start, ...result.order.map((o) => byId.get(o.id)!)];
     const legs = await Promise.all(
       ordered.slice(1).map((to, i) =>
-        routeLeg(ordered[i], to, mode)
+        provider
+          .leg(ordered[i], to, mode)
           .then((l) => l.path)
           .catch(() => [ordered[i], to]),
       ),
@@ -239,12 +241,6 @@ export default function Tonight() {
           </p>
         </header>
 
-        {!GOOGLE_MAPS_KEY && (
-          <p className="status warn">
-            Google Maps key not configured. Set NEXT_PUBLIC_GOOGLE_MAPS_API_KEY to enable search
-            and routing.
-          </p>
-        )}
 
         <section className="card">
           <div className="row">
@@ -268,7 +264,7 @@ export default function Tonight() {
               placeholder="Search: ramen, rooftop bar, chilli crab…"
               enterKeyHint="search"
             />
-            <button type="submit" disabled={!GOOGLE_MAPS_KEY}>
+            <button type="submit" disabled={!!busy}>
               Search
             </button>
           </form>
@@ -407,6 +403,7 @@ export default function Tonight() {
         )}
 
         {(busy || note) && <p className="status">{busy ?? note}</p>}
+        <p className="muted small">{provider.attribution}</p>
       </aside>
 
       <TripMap country="SG" center={start} zoom={14} markers={markers} route={route} />
