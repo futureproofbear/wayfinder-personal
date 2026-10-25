@@ -1,0 +1,42 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # API keys live in repo secrets, never in git; config.js is generated at deploy time.
+      - name: Build site
+        env:
+          MAPS_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
+          SERVICES_KEY: ${{ secrets.GOOGLE_SERVICES_API_KEY }}
+        run: |
+          mkdir _site
+          cp -r index.html styles.css sw.js manifest.webmanifest js icons _site/
+          printf "window.WAYFINDER_CONFIG = {\n  googleMapsApiKey: '%s',\n  googleServicesApiKey: '%s',\n};\n" \
+            "$MAPS_KEY" "$SERVICES_KEY" > _site/config.js
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4
